@@ -125,7 +125,7 @@ st.title("Dự đoán kết quả học tập")
 sex = st.selectbox("Giới tính", ("Nam", "Nữ"))
 studytime = st.slider("Thời gian học tập (1-4)", 1, 4, 2)
 failures = st.slider("Số lần trượt môn", 0, 3, 0)
-absences = st.slider("Số buổi nghỉ học", 0, 93, 5)
+absences = st.slider("Số % nghỉ học", 0, 93, 5)
 freetime = st.slider("Thời gian rảnh (1-5)", 1, 5, 3)
 nursery = st.selectbox("Có đi học thêm không", ("Có", "Không"))
 g1 = st.slider("Điểm kiểm Tra lần 1", 0, 20)
@@ -135,114 +135,81 @@ g2 = st.slider("Điểm kiểm tra lần 2", 0, 20)
 sex = 1 if sex == "Nam" else 0
 nursery = 1 if nursery == "Có" else 0
 
-# Lựa chọn mô hình dự đoán
-model_choice = st.selectbox("Chọn phương pháp dự đoán", ("Linear Regression", "Lasso Regression", "Neural Network", "Stacking"))
-
 # Khi người dùng nhấn nút "Dự đoán"
 if st.button("Dự đoán"):
     # Chuẩn bị dữ liệu để dự đoán (chuẩn hóa dữ liệu)
     features = np.array([[sex, studytime, failures, absences, freetime, nursery, g1, g2]])
     features_scaled = scaler.transform(features)
 
-    # Dự đoán dựa trên mô hình đã chọn
-    if model_choice == "Linear Regression":
-        prediction = linear_model.predict(features_scaled)[0]
-        r2 = r2_linear_test
-        mse = mse_linear_test
-        rmse = rmse_linear_test
-        mae = mae_linear_test
-    elif model_choice == "Lasso Regression":
-        prediction = best_lasso.predict(features_scaled)[0]
-        r2 = r2_lasso_test
-        mse = mse_lasso_test
-        rmse = rmse_lasso_test
-        mae = mae_lasso_test
-    elif model_choice == "Neural Network":
-        prediction = mlp_model.predict(features_scaled)[0]
-        r2 = r2_mlp_test
-        mse = mse_mlp_test
-        rmse = rmse_mlp_test
-        mae = mae_mlp_test
-    else:
-        prediction = stacking_model.predict(features_scaled)[0]
-        r2 = r2_stacking_test
-        mse = mse_stacking_test
-        rmse = rmse_stacking_test
-        mae = mae_stacking_test
+    # Dự đoán với tất cả các mô hình
+    prediction_linear = linear_model.predict(features_scaled)[0]
+    prediction_lasso = best_lasso.predict(features_scaled)[0]
+    prediction_mlp = mlp_model.predict(features_scaled)[0]
+    prediction_stacking = stacking_model.predict(features_scaled)[0]
 
     # Hiển thị kết quả dự đoán
     st.subheader("Kết quả dự đoán:")
-    st.write(f"Phương pháp: {model_choice}")
-    st.write(f"Dự đoán: {prediction:.2f}")
-    # Hiển thị các chỉ số hiệu suất của mô hình đã chọn
-    st.subheader("Các chỉ số hiệu suất trên tập kiểm tra:")
-
-    # Hiển thị các chỉ số hiệu suất cho Linear Regression
-    if model_choice == "Linear Regression":
-        st.write(f"R²: {r2_linear_test:.2f}")
-        st.write(f"MSE: {mse_linear_test:.2f}")
-        st.write(f"RMSE: {rmse_linear_test:.2f}")
-        st.write(f"MAE: {mae_linear_test:.2f}")
-
-    # Hiển thị các chỉ số hiệu suất cho Lasso Regression
-    elif model_choice == "Lasso Regression":
-        st.write(f"R²: {r2_lasso_test:.2f}")
-        st.write(f"MSE: {mse_lasso_test:.2f}")
-        st.write(f"RMSE: {rmse_lasso_test:.2f}")
-        st.write(f"MAE: {mae_lasso_test:.2f}")
-
-    # Hiển thị các chỉ số hiệu suất cho Neural Network
-    elif model_choice == "Neural Network":
-        st.write(f"R²: {r2_mlp_test:.2f}")
-        st.write(f"MSE: {mse_mlp_test:.2f}")
-        st.write(f"RMSE: {rmse_mlp_test:.2f}")
-        st.write(f"MAE: {mae_mlp_test:.2f}")
-
-    # Hiển thị các chỉ số hiệu suất cho Stacking
-    else:
-        st.write(f"R²: {r2_stacking_test:.2f}")
-        st.write(f"MSE: {mse_stacking_test:.2f}")
-        st.write(f"RMSE: {rmse_stacking_test:.2f}")
-        st.write(f"MAE: {mae_stacking_test:.2f}")
     
+    st.write(f"**Linear Regression:** {prediction_linear:.2f}")
+    st.write(f"R²: {r2_linear_test:.2f}, MSE: {mse_linear_test:.2f}, RMSE: {rmse_linear_test:.2f}, MAE: {mae_linear_test:.2f}")
+    
+    st.write(f"**Lasso Regression:** {prediction_lasso:.2f}")
+    st.write(f"R²: {r2_lasso_test:.2f}, MSE: {mse_lasso_test:.2f}, RMSE: {rmse_lasso_test:.2f}, MAE: {mae_lasso_test:.2f}")
+    
+    st.write(f"**Neural Network (MLP):** {prediction_mlp:.2f}")
+    st.write(f"R²: {r2_mlp_test:.2f}, MSE: {mse_mlp_test:.2f}, RMSE: {rmse_mlp_test:.2f}, MAE: {mae_mlp_test:.2f}")
+    
+    st.write(f"**Stacking:** {prediction_stacking:.2f}")
+    st.write(f"R²: {r2_stacking_test:.2f}, MSE: {mse_stacking_test:.2f}, RMSE: {rmse_stacking_test:.2f}, MAE: {mae_stacking_test:.2f}")
+
     # Biểu đồ so sánh giá trị thực và dự đoán trên tập huấn luyện
     fig_train, ax_train = plt.subplots()
-    ax_train.scatter(y_train, y_pred_linear_train, label='Linear Regression', edgecolors='k')
-    ax_train.scatter(y_train, y_pred_lasso_train, label='Lasso Regression', edgecolors='k')
-    ax_train.scatter(y_train, y_pred_mlp_train, label='Neural Network', edgecolors='k')
-    ax_train.scatter(y_train, y_pred_stacking_train, label='Stacking', edgecolors='k')
+    ax_train.scatter(y_train, y_pred_linear_train, edgecolors=(0, 0, 0), label='Linear Regression')
+    ax_train.scatter(y_train, y_pred_lasso_train, edgecolors=(0, 0, 0), label='Lasso Regression')
+    ax_train.scatter(y_train, y_pred_mlp_train, edgecolors=(0, 0, 0), label='Neural Network')
+    ax_train.scatter(y_train, y_pred_stacking_train, edgecolors=(0, 0, 0), label='Stacking')
     ax_train.plot([min(y_train), max(y_train)], [min(y_train), max(y_train)], 'k--', lw=2)
-    ax_train.set_xlabel('Giá trị thực tế')
-    ax_train.set_ylabel('Giá trị dự đoán')
+    ax_train.set_xlabel('Giá trị thực tế (Tập huấn luyện)')
+    ax_train.set_ylabel('Giá trị dự đoán (Tập huấn luyện)')
     ax_train.set_title('So sánh giá trị thực tế và dự đoán - Tập huấn luyện')
     ax_train.legend()
-    st.pyplot(fig_train)
 
-    # Biểu đồ so sánh giá trị thực và dự đoán trên tập xác thực
+    st.subheader("Biểu đồ Tập Huấn Luyện")
+    plt.tight_layout()
+    st.pyplot(fig_train)
+    
+    # Vẽ biểu đồ cho tập xác thực
     fig_val, ax_val = plt.subplots()
-    ax_val.scatter(y_val, y_pred_linear_val, label='Linear Regression', edgecolors='k')
-    ax_val.scatter(y_val, y_pred_lasso_val, label='Lasso Regression', edgecolors='k')
-    ax_val.scatter(y_val, y_pred_mlp_val, label='Neural Network', edgecolors='k')
-    ax_val.scatter(y_val, y_pred_stacking_val, label='Stacking', edgecolors='k')
+    ax_val.scatter(y_val, y_pred_linear_val, edgecolors=(0, 0, 0), label='Linear Regression')
+    ax_val.scatter(y_val, y_pred_lasso_val, edgecolors=(0, 0, 0), label='Lasso Regression')
+    ax_val.scatter(y_val, y_pred_mlp_val, edgecolors=(0, 0, 0), label='Neural Network')
+    ax_val.scatter(y_val, y_pred_stacking_val, edgecolors=(0, 0, 0), label='Stacking')
     ax_val.plot([min(y_val), max(y_val)], [min(y_val), max(y_val)], 'k--', lw=2)
-    ax_val.set_xlabel('Giá trị thực tế')
-    ax_val.set_ylabel('Giá trị dự đoán')
+    ax_val.set_xlabel('Giá trị thực tế (Tập xác thực)')
+    ax_val.set_ylabel('Giá trị dự đoán (Tập xác thực)')
     ax_val.set_title('So sánh giá trị thực tế và dự đoán - Tập xác thực')
     ax_val.legend()
+
+    st.subheader("Biểu đồ Tập Xác Thực")
+    plt.tight_layout()
     st.pyplot(fig_val)
-    
-    # Biểu đồ so sánh giá trị thực và dự đoán trên tập kiểm tra
+
+    # Biểu đồ cho tập kiểm tra
     fig_test, ax_test = plt.subplots()
-    ax_test.scatter(y_test, y_pred_linear_test, label='Linear Regression', edgecolors='k')
-    ax_test.scatter(y_test, y_pred_lasso_test, label='Lasso Regression', edgecolors='k')
-    ax_test.scatter(y_test, y_pred_mlp_test, label='Neural Network', edgecolors='k')
-    ax_test.scatter(y_test, y_pred_stacking_test, label='Stacking', edgecolors='k')
+    ax_test.scatter(y_test, y_pred_linear_test, edgecolors=(0, 0, 0), label='Linear Regression')
+    ax_test.scatter(y_test, y_pred_lasso_test, edgecolors=(0, 0, 0), label='Lasso Regression')
+    ax_test.scatter(y_test, y_pred_mlp_test, edgecolors=(0, 0, 0), label='Neural Network')
+    ax_test.scatter(y_test, y_pred_stacking_test, edgecolors=(0, 0, 0), label='Stacking')
     ax_test.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], 'k--', lw=2)
-    ax_test.set_xlabel('Giá trị thực tế')
-    ax_test.set_ylabel('Giá trị dự đoán')
+    ax_test.set_xlabel('Giá trị thực tế (Tập kiểm tra)')
+    ax_test.set_ylabel('Giá trị dự đoán (Tập kiểm tra)')
     ax_test.set_title('So sánh giá trị thực tế và dự đoán - Tập kiểm tra')
     ax_test.legend()
+
+    st.subheader("Biểu đồ Tập Kiểm Tra")
+    plt.tight_layout()
     st.pyplot(fig_test)
+
 
 
 
