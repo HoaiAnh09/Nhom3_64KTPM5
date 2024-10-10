@@ -79,7 +79,7 @@ mae_lasso_test = mean_absolute_error(y_test, y_pred_lasso_test)
 mlp_model = MLPRegressor(hidden_layer_sizes=(50, 50, 50), max_iter=1000, random_state=42, learning_rate='adaptive', alpha=0.0001)
 mlp_model.fit(X_train_scaled, y_train)
 y_pred_mlp_train = mlp_model.predict(X_train_scaled)
-y_pred_mlp_val = mlp_model.predict(X_val_scaled)  # Dự đoán trên tập xác thực
+y_pred_mlp_val = mlp_model.predict(X_val_scaled)  
 y_pred_mlp_test = mlp_model.predict(X_test_scaled)
 
 # Tính toán các chỉ số cho Neural Network
@@ -105,7 +105,7 @@ stacking_model.fit(X_train_scaled, y_train)
 
 # Dự đoán cho tập xác thực với các mô hình
 y_pred_stacking_train = stacking_model.predict(X_train_scaled)
-y_pred_stacking_val = stacking_model.predict(X_val_scaled)  # Dự đoán trên tập xác thực
+y_pred_stacking_val = stacking_model.predict(X_val_scaled)  
 y_pred_stacking_test = stacking_model.predict(X_test_scaled)
 
 # Tính toán các chỉ số cho Stacking
@@ -209,7 +209,3 @@ if st.button("Dự đoán"):
     st.subheader("Biểu đồ Tập Kiểm Tra")
     plt.tight_layout()
     st.pyplot(fig_test)
-
-
-
-
