@@ -1,4 +1,4 @@
-Dự đoán Kết quả Học tập bằng Học Máy
+Dự đoán Kết quả Học tập 
 Mô tả
 Dự án này phát triển một ứng dụng dự đoán kết quả học tập của học sinh bằng cách sử dụng các thuật toán học máy khác nhau, bao gồm:
 
@@ -35,17 +35,7 @@ RMSE (Root Mean Squared Error): Căn bậc hai của trung bình bình phương 
 MSE (Mean Squared Error): Trung bình bình phương sai số.
 MAE (Mean Absolute Error): Trung bình sai số tuyệt đối.
 R² (R-squared): Hệ số xác định, phản ánh mức độ mô hình giải thích được sự biến thiên của dữ liệu.
-Cách chạy ứng dụng
-Cài đặt các thư viện cần thiết:
 
-bash
-Sao chép mã
-pip install -r requirements.txt
-Chạy ứng dụng Streamlit:
-
-bash
-Sao chép mã
-streamlit run app.py
 Truy cập vào địa chỉ [http://localhost:8501](https://nhom3--64ktpm5.streamlit.app/) để sử dụng ứng dụng.
 
 Tham khảo
