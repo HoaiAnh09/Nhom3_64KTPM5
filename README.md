@@ -41,8 +41,3 @@ Mô hình được đánh giá dựa trên các tham số sau:
 - R² (R-squared): Hệ số xác định, phản ánh mức độ mô hình giải thích được sự biến thiên của dữ liệu.
 
 Truy cập vào địa chỉ [http://localhost:8501](https://nhom3--64ktpm5.streamlit.app/) để sử dụng ứng dụng.
-
-Tham khảo
-Scikit-learn Documentation: https://scikit-learn.org/stable/documentation.html
-Streamlit Documentation: https://docs.streamlit.io/
-Marchine Learning cơ bản: https://machinelearningcoban.com/
