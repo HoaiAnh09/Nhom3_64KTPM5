@@ -1,4 +1,4 @@
-Dự đoán Kết quả Học tập 
+DỰ ĐOÁN KẾT QUẢ HỌC TẬP
 
 Mô tả
 Dự án này phát triển một ứng dụng dự đoán kết quả học tập của học sinh bằng cách sử dụng các thuật toán học máy khác nhau, bao gồm:
