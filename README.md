@@ -40,4 +40,4 @@ Mô hình được đánh giá dựa trên các tham số sau:
 - MAE (Mean Absolute Error): Trung bình sai số tuyệt đối.
 - R² (R-squared): Hệ số xác định, phản ánh mức độ mô hình giải thích được sự biến thiên của dữ liệu.
 
-Truy cập vào địa chỉ [http://localhost:8501](https://nhom3--64ktpm5.streamlit.app/) để sử dụng ứng dụng.
+Truy cập vào địa chỉ https://nhom3--64ktpm5.streamlit.app/ để sử dụng ứng dụng.
