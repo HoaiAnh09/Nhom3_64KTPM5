@@ -10,20 +10,18 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
+import joblib
 
 # 1. Đọc và tiền xử lý dữ liệu
 df = pd.read_csv('student-mat.csv', sep=';')
 
-# Chỉ lấy các cột cần thiết 
-df = df[['sex', 'studytime', 'failures', 'absences', 'freetime', 'nursery', 'G1', 'G2', 'G3']]
-
 # Biến đổi cột 'sex' thành nhãn số (Label Encoding)
 le = LabelEncoder()
 df['sex'] = le.fit_transform(df['sex'])
-df['nursery'] = le.fit_transform(df['nursery'])  # Mã hóa nursery
+df['nursery'] = le.fit_transform(df['nursery']) 
 
 # Tách biến đầu vào và biến mục tiêu
-X = df[['sex', 'studytime', 'failures', 'absences', 'freetime', 'nursery', 'G1', 'G2']]  # Chỉ lấy 8 thuộc tính
+X = df[['sex', 'studytime', 'failures', 'absences', 'freetime', 'nursery', 'G1', 'G2']]  
 y = df['G3']
 
 # Chia dữ liệu thành tập train, validation, và test
@@ -41,12 +39,12 @@ X_test_scaled = scaler.transform(X_test)
 linear_model = LinearRegression()
 linear_model.fit(X_train_scaled, y_train)
 y_pred_linear_train = linear_model.predict(X_train_scaled)
-y_pred_linear_val = linear_model.predict(X_val_scaled)  # Dự đoán trên tập xác thực
+y_pred_linear_val = linear_model.predict(X_val_scaled) 
 y_pred_linear_test = linear_model.predict(X_test_scaled)
 
 # Tính toán các chỉ số cho Linear Regression
 r2_linear_train = r2_score(y_train, y_pred_linear_train)
-r2_linear_val = r2_score(y_val, y_pred_linear_val)  # R² cho tập xác thực
+r2_linear_val = r2_score(y_val, y_pred_linear_val) 
 r2_linear_test = r2_score(y_test, y_pred_linear_test)
 # Tính MSE, RMSE, MAE cho tập kiểm tra
 mse_linear_test = mean_squared_error(y_test, y_pred_linear_test)
@@ -117,6 +115,22 @@ r2_stacking_test = r2_score(y_test, y_pred_stacking_test)
 mse_stacking_test = mean_squared_error(y_test, y_pred_stacking_test)
 rmse_stacking_test = np.sqrt(mse_stacking_test)
 mae_stacking_test = mean_absolute_error(y_test, y_pred_stacking_test)
+
+# Lưu các mô hình thành file .pkl
+joblib.dump(linear_model, 'linear_model.pkl')
+joblib.dump(best_lasso, 'lasso_model.pkl')
+joblib.dump(mlp_model, 'mlp_model.pkl')
+joblib.dump(stacking_model, 'stacking_model.pkl')
+
+# Tải mô hình từ file .pkl
+linear_model = joblib.load('linear_model.pkl')
+lasso_model = joblib.load('lasso_model.pkl')
+mlp_model = joblib.load('mlp_model.pkl')
+stacking_model = joblib.load('stacking_model.pkl')
+
+# Dự đoán với mô hình đã tải
+y_pred = linear_model.predict(X_test_scaled)
+
 
 # 3. Giao diện Streamlit
 st.title("Dự đoán kết quả học tập")
@@ -209,3 +223,7 @@ if st.button("Dự đoán"):
     st.subheader("Biểu đồ Tập Kiểm Tra")
     plt.tight_layout()
     st.pyplot(fig_test)
+
+
+
+
