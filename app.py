@@ -10,18 +10,22 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
+import os
 import joblib
 
 # 1. Đọc và tiền xử lý dữ liệu
 df = pd.read_csv('student-mat.csv', sep=';')
 
+# Chỉ lấy các cột cần thiết 
+df = df[['sex', 'studytime', 'failures', 'absences', 'freetime', 'nursery', 'G1', 'G2', 'G3']]
+
 # Biến đổi cột 'sex' thành nhãn số (Label Encoding)
 le = LabelEncoder()
 df['sex'] = le.fit_transform(df['sex'])
-df['nursery'] = le.fit_transform(df['nursery']) 
+df['nursery'] = le.fit_transform(df['nursery'])  # Mã hóa nursery
 
 # Tách biến đầu vào và biến mục tiêu
-X = df[['sex', 'studytime', 'failures', 'absences', 'freetime', 'nursery', 'G1', 'G2']]  
+X = df[['sex', 'studytime', 'failures', 'absences', 'freetime', 'nursery', 'G1', 'G2']]  # Chỉ lấy 8 thuộc tính
 y = df['G3']
 
 # Chia dữ liệu thành tập train, validation, và test
@@ -36,28 +40,60 @@ X_test_scaled = scaler.transform(X_test)
 
 # 2. Xây dựng các mô hình
 # 2.1 Hồi quy tuyến tính (Chỉ với 8 thuộc tính)
-linear_model = LinearRegression()
-linear_model.fit(X_train_scaled, y_train)
-y_pred_linear_train = linear_model.predict(X_train_scaled)
-y_pred_linear_val = linear_model.predict(X_val_scaled) 
-y_pred_linear_test = linear_model.predict(X_test_scaled)
+if os.path.exists('models/lasso_model.pkl'):
+    best_lasso = joblib.load('models/lasso_model.pkl')
+    linear_model = joblib.load('models/linear_model.pkl')
+    mlp_model = joblib.load('models/mlp_model.pkl')
+    stacking_model = joblib.load('models/stacking_model.pkl')
+    
+else:
+    linear_model = LinearRegression()
+    linear_model.fit(X_train_scaled, y_train)
 
+    # 2.2 Lasso Regression
+    lasso_model = Lasso()
+    param_grid = {'alpha': [0.001, 0.01, 0.1, 1, 10]}
+    grid_search = GridSearchCV(lasso_model, param_grid, cv=5)
+    grid_search.fit(X_train_scaled, y_train)
+
+    best_lasso = grid_search.best_estimator_
+    
+
+    # 2.3 Neural Network - MLPRegressor
+    mlp_model = MLPRegressor(hidden_layer_sizes=(50, 50, 50), max_iter=1000, random_state=42, learning_rate='adaptive', alpha=0.0001)
+    mlp_model.fit(X_train_scaled, y_train)
+    
+
+    estimators = [
+    ('linear', linear_model),
+    ('lasso', best_lasso),
+    ('mlp', mlp_model)
+]
+    stacking_model = StackingRegressor(
+    estimators=estimators, 
+    final_estimator=RandomForestRegressor(n_estimators=50, max_depth=10, random_state=42))
+    stacking_model.fit(X_train_scaled, y_train)
+
+    if not os.path.exists('models'):
+        os.makedirs('models')
+    
+    joblib.dump(linear_model, 'models/linear_model.pkl')
+    joblib.dump(best_lasso, 'models/lasso_model.pkl')
+    joblib.dump(mlp_model, 'models/mlp_model.pkl')
+    joblib.dump(stacking_model, 'models/stacking_model.pkl')
+
+y_pred_linear_train = linear_model.predict(X_train_scaled)
+y_pred_linear_val = linear_model.predict(X_val_scaled)  # Dự đoán trên tập xác thực
+y_pred_linear_test = linear_model.predict(X_test_scaled)
 # Tính toán các chỉ số cho Linear Regression
 r2_linear_train = r2_score(y_train, y_pred_linear_train)
-r2_linear_val = r2_score(y_val, y_pred_linear_val) 
+r2_linear_val = r2_score(y_val, y_pred_linear_val)  # R² cho tập xác thực
 r2_linear_test = r2_score(y_test, y_pred_linear_test)
 # Tính MSE, RMSE, MAE cho tập kiểm tra
 mse_linear_test = mean_squared_error(y_test, y_pred_linear_test)
 rmse_linear_test = np.sqrt(mse_linear_test)
 mae_linear_test = mean_absolute_error(y_test, y_pred_linear_test)
 
-# 2.2 Lasso Regression
-lasso_model = Lasso()
-param_grid = {'alpha': [0.001, 0.01, 0.1, 1, 10]}
-grid_search = GridSearchCV(lasso_model, param_grid, cv=5)
-grid_search.fit(X_train_scaled, y_train)
-
-best_lasso = grid_search.best_estimator_
 y_pred_lasso_train = best_lasso.predict(X_train_scaled)
 y_pred_lasso_val = best_lasso.predict(X_val_scaled)  # Dự đoán trên tập xác thực
 y_pred_lasso_test = best_lasso.predict(X_test_scaled)
@@ -73,14 +109,10 @@ mse_lasso_test = mean_squared_error(y_test, y_pred_lasso_test)
 rmse_lasso_test = np.sqrt(mse_lasso_test)
 mae_lasso_test = mean_absolute_error(y_test, y_pred_lasso_test)
 
-# 2.3 Neural Network - MLPRegressor
-mlp_model = MLPRegressor(hidden_layer_sizes=(50, 50, 50), max_iter=1000, random_state=42, learning_rate='adaptive', alpha=0.0001)
-mlp_model.fit(X_train_scaled, y_train)
+# Tính toán các chỉ số cho Neural Network
 y_pred_mlp_train = mlp_model.predict(X_train_scaled)
 y_pred_mlp_val = mlp_model.predict(X_val_scaled)  
 y_pred_mlp_test = mlp_model.predict(X_test_scaled)
-
-# Tính toán các chỉ số cho Neural Network
 r2_mlp_train = r2_score(y_train, y_pred_mlp_train)
 r2_mlp_val = r2_score(y_val, y_pred_mlp_val)
 r2_mlp_test = r2_score(y_test, y_pred_mlp_test)
@@ -92,14 +124,9 @@ mae_mlp_test = mean_absolute_error(y_test, y_pred_mlp_test)
 
 
 # Tạo mô hình Stacking từ các mô hình hồi quy trước đó (base models)
-estimators = [
-    ('linear', linear_model),
-    ('lasso', best_lasso),
-    ('mlp', mlp_model)
-]
 
-stacking_model = StackingRegressor(estimators=estimators, final_estimator=RandomForestRegressor(n_estimators=50, max_depth=10, random_state=42))
-stacking_model.fit(X_train_scaled, y_train)
+
+
 
 # Dự đoán cho tập xác thực với các mô hình
 y_pred_stacking_train = stacking_model.predict(X_train_scaled)
@@ -115,22 +142,6 @@ r2_stacking_test = r2_score(y_test, y_pred_stacking_test)
 mse_stacking_test = mean_squared_error(y_test, y_pred_stacking_test)
 rmse_stacking_test = np.sqrt(mse_stacking_test)
 mae_stacking_test = mean_absolute_error(y_test, y_pred_stacking_test)
-
-# Lưu các mô hình thành file .pkl
-joblib.dump(linear_model, 'linear_model.pkl')
-joblib.dump(best_lasso, 'lasso_model.pkl')
-joblib.dump(mlp_model, 'mlp_model.pkl')
-joblib.dump(stacking_model, 'stacking_model.pkl')
-
-# Tải mô hình từ file .pkl
-linear_model = joblib.load('linear_model.pkl')
-lasso_model = joblib.load('lasso_model.pkl')
-mlp_model = joblib.load('mlp_model.pkl')
-stacking_model = joblib.load('stacking_model.pkl')
-
-# Dự đoán với mô hình đã tải
-y_pred = linear_model.predict(X_test_scaled)
-
 
 # 3. Giao diện Streamlit
 st.title("Dự đoán kết quả học tập")
