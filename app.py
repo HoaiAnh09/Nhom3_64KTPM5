@@ -98,7 +98,7 @@ estimators = [
     ('mlp', mlp_model)
 ]
 
-stacking_model = StackingRegressor(estimators=estimators, final_estimator=RandomForestRegressor(n_estimators=100, max_depth=10, random_state=42))
+stacking_model = StackingRegressor(estimators=estimators, final_estimator=RandomForestRegressor(n_estimators=50, max_depth=10, random_state=42))
 stacking_model.fit(X_train_scaled, y_train)
 
 # Dự đoán cho tập xác thực với các mô hình
@@ -223,7 +223,3 @@ if st.button("Dự đoán"):
     st.subheader("Biểu đồ Tập Kiểm Tra")
     plt.tight_layout()
     st.pyplot(fig_test)
-
-
-
-
