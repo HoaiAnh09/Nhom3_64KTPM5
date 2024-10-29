@@ -12,7 +12,7 @@ Dự án này phát triển một ứng dụng dự đoán kết quả học t�
 Mục tiêu
 Mục tiêu chính của dự án là dự đoán kết quả học tập của học sinh dựa trên các đặc trưng như:
 
--Giới tính (sex)
+- Giới tính (sex)
 - Thời gian học (studytime)
 - Số lần thất bại (failures)
 - Thời gian rảnh (freetime)
