@@ -12,6 +12,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
 import os
 import joblib
+import seaborn as sns
 
 # 1. Đọc và tiền xử lý dữ liệu
 df = pd.read_csv('student-mat.csv', sep=';')
@@ -238,8 +239,10 @@ if st.button("Dự đoán"):
     
     # Biểu đồ tương quan giữa các biến
     st.subheader("Biểu đồ Tương Quan Giữa Các Biến")
+
     # Tính ma trận tương quan
     corr_matrix = df.corr()
+
     # Vẽ biểu đồ heatmap cho ma trận tương quan
     fig_corr, ax_corr = plt.subplots()
     sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", ax=ax_corr)
