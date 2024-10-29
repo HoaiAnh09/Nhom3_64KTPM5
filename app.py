@@ -235,3 +235,13 @@ if st.button("Dự đoán"):
     st.subheader("Biểu đồ Tập Kiểm Tra")
     plt.tight_layout()
     st.pyplot(fig_test)
+    
+    # Biểu đồ tương quan giữa các biến
+    st.subheader("Biểu đồ Tương Quan Giữa Các Biến")
+    # Tính ma trận tương quan
+    corr_matrix = df.corr()
+    # Vẽ biểu đồ heatmap cho ma trận tương quan
+    fig_corr, ax_corr = plt.subplots()
+    sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", ax=ax_corr)
+    ax_corr.set_title("Ma Trận Tương Quan Giữa Các Biến")
+    st.pyplot(fig_corr)
