@@ -28,12 +28,15 @@ df['nursery'] = le.fit_transform(df['nursery'])  # Mã hóa nursery
 X = df[['sex', 'studytime', 'failures', 'absences', 'freetime', 'nursery', 'G1', 'G2']]  
 y = df['G3']
 
-# Chia dữ liệu thành tập train và test
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Chia dữ liệu thành tập train, validation, và test
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.2, random_state=42)
+X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
+
 
 # Chuẩn hóa dữ liệu
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
+X_val_scaled = scaler.transform(X_val)
 X_test_scaled = scaler.transform(X_test)
 
 # 2. Xây dựng các mô hình
@@ -61,12 +64,12 @@ else:
     mlp_model = MLPRegressor(hidden_layer_sizes=(50, 50, 50), max_iter=1000, random_state=42, learning_rate='adaptive', alpha=0.0001)
     mlp_model.fit(X_train_scaled, y_train)
     
-
+    # Tạo mô hình Stacking từ các mô hình hồi quy trước đó 
     estimators = [
     ('linear', linear_model),
     ('lasso', best_lasso),
     ('mlp', mlp_model)
-]
+    ]
     stacking_model = StackingRegressor(
     estimators=estimators, 
     final_estimator=RandomForestRegressor(n_estimators=50, max_depth=10, random_state=42))
@@ -81,9 +84,11 @@ else:
     joblib.dump(stacking_model, 'models/stacking_model.pkl')
 
 y_pred_linear_train = linear_model.predict(X_train_scaled)
+y_pred_linear_val = linear_model.predict(X_val_scaled)  # Dự đoán trên tập xác thực
 y_pred_linear_test = linear_model.predict(X_test_scaled)
 # Tính toán các chỉ số cho Linear Regression
 r2_linear_train = r2_score(y_train, y_pred_linear_train)
+r2_linear_val = r2_score(y_val, y_pred_linear_val)  # R² cho tập xác thực
 r2_linear_test = r2_score(y_test, y_pred_linear_test)
 # Tính MSE, RMSE, MAE cho tập kiểm tra
 mse_linear_test = mean_squared_error(y_test, y_pred_linear_test)
@@ -91,11 +96,13 @@ rmse_linear_test = np.sqrt(mse_linear_test)
 mae_linear_test = mean_absolute_error(y_test, y_pred_linear_test)
 
 y_pred_lasso_train = best_lasso.predict(X_train_scaled)
+y_pred_lasso_val = best_lasso.predict(X_val_scaled)  # Dự đoán trên tập xác thực
 y_pred_lasso_test = best_lasso.predict(X_test_scaled)
 
 
 # Tính toán các chỉ số cho Lasso Regression
 r2_lasso_train = r2_score(y_train, y_pred_lasso_train)
+r2_lasso_val = r2_score(y_val, y_pred_lasso_val)
 r2_lasso_test = r2_score(y_test, y_pred_lasso_test)
 
 # Tính MSE, RMSE, MAE cho tập kiểm tra
@@ -105,8 +112,10 @@ mae_lasso_test = mean_absolute_error(y_test, y_pred_lasso_test)
 
 # Tính toán các chỉ số cho Neural Network
 y_pred_mlp_train = mlp_model.predict(X_train_scaled)
+y_pred_mlp_val = mlp_model.predict(X_val_scaled)  
 y_pred_mlp_test = mlp_model.predict(X_test_scaled)
 r2_mlp_train = r2_score(y_train, y_pred_mlp_train)
+r2_mlp_val = r2_score(y_val, y_pred_mlp_val)
 r2_mlp_test = r2_score(y_test, y_pred_mlp_test)
 
 # Tính MSE, RMSE, MAE cho tập kiểm tra
@@ -121,11 +130,13 @@ mae_mlp_test = mean_absolute_error(y_test, y_pred_mlp_test)
 
 
 # Dự đoán cho tập xác thực với các mô hình
-y_pred_stacking_train = stacking_model.predict(X_train_scaled)  
+y_pred_stacking_train = stacking_model.predict(X_train_scaled)
+y_pred_stacking_val = stacking_model.predict(X_val_scaled)  
 y_pred_stacking_test = stacking_model.predict(X_test_scaled)
 
 # Tính toán các chỉ số cho Stacking
 r2_stacking_train = r2_score(y_train, y_pred_stacking_train)
+r2_stacking_val = r2_score(y_val, y_pred_stacking_val)
 r2_stacking_test = r2_score(y_test, y_pred_stacking_test)
 
 # Tính MSE, RMSE, MAE cho tập kiểm tra
@@ -174,10 +185,6 @@ if st.button("Dự đoán"):
         "RMSE": [rmse_linear_test, rmse_lasso_test, rmse_mlp_test, rmse_stacking_test],
         "MAE": [mae_linear_test, mae_lasso_test, mae_mlp_test, mae_stacking_test]
     })
-
-    # Làm tròn kết quả để dễ nhìn
-    results = results.round(2)
-
     # Hiển thị bảng kết quả
     st.table(results)
 
@@ -196,6 +203,22 @@ if st.button("Dự đoán"):
     st.subheader("Biểu đồ Tập Huấn Luyện")
     plt.tight_layout()
     st.pyplot(fig_train)
+    
+    # Vẽ biểu đồ cho tập xác thực
+    fig_val, ax_val = plt.subplots()
+    ax_val.scatter(y_val, y_pred_linear_val, edgecolors=(0, 0, 0), label='Linear Regression')
+    ax_val.scatter(y_val, y_pred_lasso_val, edgecolors=(0, 0, 0), label='Lasso Regression')
+    ax_val.scatter(y_val, y_pred_mlp_val, edgecolors=(0, 0, 0), label='Neural Network')
+    ax_val.scatter(y_val, y_pred_stacking_val, edgecolors=(0, 0, 0), label='Stacking')
+    ax_val.plot([min(y_val), max(y_val)], [min(y_val), max(y_val)], 'k--', lw=2)
+    ax_val.set_xlabel('Giá trị thực tế (Tập xác thực)')
+    ax_val.set_ylabel('Giá trị dự đoán (Tập xác thực)')
+    ax_val.set_title('So sánh giá trị thực tế và dự đoán - Tập xác thực')
+    ax_val.legend()
+
+    st.subheader("Biểu đồ Tập Xác Thực")
+    plt.tight_layout()
+    st.pyplot(fig_val)
 
     # Biểu đồ cho tập kiểm tra
     fig_test, ax_test = plt.subplots()
